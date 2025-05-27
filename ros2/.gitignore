@@ -1,7 +1,0 @@
-.vscode/
-.idea/
-build/
-log/
-install/
-!packages/ros-humble-ros1-bridge/**
-
