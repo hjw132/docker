@@ -1,7 +1,6 @@
-#这是humble v3版本的基础镜像,主要增加了通用的包与终端添加了用户
-# FROM ros:humble-perception
-FROM ghcr.io/sloretz/ros:humble-desktop-full
-
+#这是jazzy版本的基础镜像,主要增加了通用的包与终端添加了用户
+# FROM ghcr.io/sloretz/ros:jazzy-desktop-full
+FROM ros:jazzy-perception
 # 定义用户和用户组
 ARG USERNAME=Elaina
 ARG USER_UID=1000
@@ -20,7 +19,7 @@ RUN set -eux; \
     if ! getent passwd | awk -F: '{print $1":"$4}' | grep -q ":1000$"; then \
     groupdel "$existing_group"; \
     fi; \
-    fi; \    
+    fi; \
     groupadd --gid $USER_GID ${GROUP_NAME} \
     && useradd --uid $USER_UID --gid $USER_GID -m -s /bin/bash $USERNAME \
     # 配置密码
@@ -54,21 +53,21 @@ RUN cp /temp/gcc-11.mo /usr/share/locale/zh_CN/LC_MESSAGES/ \
     && sudo -u ${USERNAME} clitheme apply-theme /temp/39neko.clithemedef.txt --yes \
     && rm -rf /temp
 
-RUN apt-get update && apt-get install -y ros-humble-foxglove-bridge ros-humble-rmw-cyclonedds-cpp usbutils  iputils-ping  ninja-build ccache lld ros-humble-rqt-tf-tree \
+RUN apt-get update && apt-get install -y ros-jazzy-foxglove-bridge  ros-jazzy-rmw-cyclonedds-cpp usbutils  iputils-ping  ninja-build ccache lld ros-jazzy-rqt-tf-tree \
     && echo "umask 002" | sudo tee -a /etc/profile /etc/bash.bashrc
 # 使用 root 用户
 
 # 安装雷达驱动
-RUN mkdir -p /home/$USERNAME/packages && cd /home/$USERNAME/packages && git clone https://github.com/Livox-SDK/Livox-SDK2.git \
+RUN mkdir -p /home/$USERNAME/packages && cd /home/$USERNAME/packages && git clone https://github.com/Elaina-rascal/Livox-SDK2.git \
     && cd Livox-SDK2 && mkdir build && cd build && cmake .. && make -j6 && make install
 
 # 安装雷达 ROS 驱动
 RUN mkdir -p /home/$USERNAME/packages/ws_livox/src/ \
     && cd /home/$USERNAME/packages/ws_livox/src/ \
-    && git clone https://github.com/Livox-SDK/livox_ros_driver2.git \
-    && . /opt/ros/humble/setup.sh \
+    && git clone -b origin_fix  https://github.com/Elaina-rascal/livox_ros_driver2.git \
+    && . /opt/ros/jazzy/setup.sh \
     && export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH \
-    && ./livox_ros_driver2/build.sh humble \
+    && ./livox_ros_driver2/build.sh jazzy \
     && echo 'source ~/packages/ws_livox/install/setup.bash' >> /home/$USERNAME/.bashrc
 
 RUN apt-get update \
@@ -78,3 +77,5 @@ RUN apt-get update && apt-get install -y clang-14 \
     && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-14 100 \
     && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-14 100 \
     && update-alternatives --install /usr/bin/clangd clangd /usr/bin/clangd-19 100 
+
+
